@@ -387,7 +387,7 @@ class Trainer(object):
 
         return init
 
-    def train(self, data_provider, output_path, training_iters=10, epochs=100, dropout=0.75, display_step=1,
+    def train(self, train_data_provider, output_path, val_data_provider=None, training_iters=10, epochs=100, dropout=0.75, display_step=1,
               restore=False, write_graph=False, prediction_path='prediction'):
         """
         Lauches the training process
@@ -406,6 +406,9 @@ class Trainer(object):
         if epochs == 0:
             return save_path
 
+        if val_data_provider==None:
+            val_data_provider = train_data_provider
+
         init = self._initialize(training_iters, output_path, restore, prediction_path)
 
         with tf.Session() as sess:
@@ -419,7 +422,8 @@ class Trainer(object):
                 if ckpt and ckpt.model_checkpoint_path:
                     self.net.restore(sess, ckpt.model_checkpoint_path)
 
-            test_x, test_y = data_provider(self.verification_batch_size)
+            test_x, test_y = val_data_provider(self.verification_batch_size)
+            val_data_provider.reset_data()
             pred_shape = self.store_prediction(sess, test_x, test_y, "_init")
 
             summary_writer = tf.summary.FileWriter(output_path, graph=sess.graph)
@@ -429,7 +433,7 @@ class Trainer(object):
             for epoch in range(epochs):
                 total_loss = 0
                 for step in range((epoch * training_iters), ((epoch + 1) * training_iters)):
-                    batch_x, batch_y = data_provider(self.batch_size)
+                    batch_x, batch_y = train_data_provider(self.batch_size)
 
                     # Run optimization op (backprop)
                     _, loss, lr, gradients = sess.run(
@@ -451,26 +455,39 @@ class Trainer(object):
 
                 self.output_epoch_stats(epoch, total_loss, training_iters, lr)
                 self.store_prediction(sess, test_x, test_y, "epoch_%s" % epoch)
+                self.run_validation(val_data_provider, sess, pred_shape, epoch)
 
                 save_path = self.net.save(sess, save_path)
             logging.info("Optimization Finished!")
 
             return save_path
 
+    def run_validation(self, val_data_provider, sess, pred_shape, epoch):
+        val_iters = int(val_data_provider.data_num/self.batch_size)
+        total_loss = 0
+        total_acc = 0
+        for step in range(val_iters):
+            batch_x, batch_y = val_data_provider(self.batch_size)
+            batch_y = util.crop_to_shape(batch_y, pred_shape)
+            loss, acc = sess.run([self.net.cost,
+                                    self.net.accuracy],
+                                    feed_dict={self.net.x: batch_x,
+                                            self.net.y: batch_y,
+                                            self.net.keep_prob: 1.})
+            total_loss += loss
+            total_acc += acc
+        logging.info(
+            "Epoch {:}, Validation Loss= {:.4f}, Validation Accuracy= {:.4f}".format(epoch,
+                                                                               total_loss/val_iters,
+                                                                               total_acc/val_iters,
+                                                                               ))
+
+
     def store_prediction(self, sess, batch_x, batch_y, name):
         prediction = sess.run(self.net.predicter, feed_dict={self.net.x: batch_x,
                                                              self.net.y: batch_y,
                                                              self.net.keep_prob: 1.})
         pred_shape = prediction.shape
-
-        loss = sess.run(self.net.cost, feed_dict={self.net.x: batch_x,
-                                                  self.net.y: util.crop_to_shape(batch_y, pred_shape),
-                                                  self.net.keep_prob: 1.})
-
-        logging.info("Verification error= {:.1f}%, loss= {:.4f}".format(error_rate(prediction,
-                                                                                   util.crop_to_shape(batch_y,
-                                                                                                      prediction.shape)),
-                                                                        loss))
 
         img = util.combine_img_prediction(batch_x, batch_y, prediction)
         util.save_image(img, "%s/%s.jpg" % (self.prediction_path, name))

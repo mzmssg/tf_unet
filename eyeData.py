@@ -31,12 +31,14 @@ class EyeDataProvider(BaseDataProvider):
         self.n_class = n_class
 
         self.data_files = self._find_data_files(search_path)
+        self.data_num = len(self.data_files)
+        
 
         if self.shuffle_data:
             np.random.shuffle(self.data_files)
 
-        assert len(self.data_files) > 0, "No training files"
-        print("Number of files used: %s" % len(self.data_files))
+        assert self.data_num > 0, "No training files"
+        print("Number of files used: %s" % self.data_num)
 
         img = self._load_file(self.data_files[0])
         self.channels = 1 if len(img.shape) == 2 else img.shape[-1]
@@ -55,6 +57,11 @@ class EyeDataProvider(BaseDataProvider):
             self.file_idx = 0
             if self.shuffle_data:
                 np.random.shuffle(self.data_files)
+    
+    def reset_data(self):
+        self.file_idx = -1
+        if self.shuffle_data:
+            np.random.shuffle(self.data_files)
 
     def _next_data(self):
         self._cylce_file()
