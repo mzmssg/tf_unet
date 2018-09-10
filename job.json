@@ -8,7 +8,7 @@
       "cpuNumber": 4,
       "memoryMB": 16382,
       "gpuNumber": 1,
-      "command": "git clone https://github.com/mzmssg/eye.git && jupyter notebook --allow-root --no-browser --ip 0.0.0.0 --port=$PAI_CONTAINER_HOST_jupyter_PORT_LIST --NotebookApp.token=\"\" --NotebookApp.allow_origin=\"*\"",
+      "command": "unzip -q eyedata.zip;  git clone https://github.com/mzmssg/eye.git && jupyter notebook --allow-root --no-browser --ip 0.0.0.0 --port=$PAI_CONTAINER_HOST_jupyter_PORT_LIST --NotebookApp.token=\"\" --NotebookApp.allow_origin=\"*\"",
       "portList": [
         {
           "label": "jupyter",
