@@ -1,10 +1,14 @@
-import tensorflow
 from eyeData import EyeDataProvider
 from tf_unet import unet
+import platform
 
 
 # nx,ny = 512, 1024
-eye_data_provider = EyeDataProvider("/root/eyedata/Edema_?????*set/original_images/*/*.bmp", n_class=4)
+
+data_path = "/Users/miao/Downloads/eyedata/Edema_?????*set/original_images/*/*.bmp" if platform.system()=="Darwin" \
+    else "/root/eyedata/Edema_?????*set/original_images/*/*.bmp"
+
+eye_data_provider = EyeDataProvider(data_path, n_class=4)
 
 net = unet.Unet(channels=eye_data_provider.channels,
                 n_class=eye_data_provider.n_class,
