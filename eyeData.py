@@ -32,7 +32,7 @@ class EyeDataProvider(BaseDataProvider):
 
         self.data_files = self._find_data_files(search_path)
         self.data_num = len(self.data_files)
-        
+
 
         if self.shuffle_data:
             np.random.shuffle(self.data_files)
@@ -57,7 +57,7 @@ class EyeDataProvider(BaseDataProvider):
             self.file_idx = 0
             if self.shuffle_data:
                 np.random.shuffle(self.data_files)
-    
+
     def reset_data(self):
         self.file_idx = -1
         if self.shuffle_data:
@@ -69,7 +69,7 @@ class EyeDataProvider(BaseDataProvider):
         label_name = self._from_image_to_label_name(image_name)
 
         img = self._load_file(image_name, np.float32)
-        label = self._load_file(label_name, np.int8)
+        label = self._load_file(label_name, np.uint8)
         label = self._convert_label_to_onehot(label)
 
 
