@@ -6,7 +6,7 @@ import platform
 # nx,ny = 512, 1024
 
 train_data_path = "/Users/miao/Downloads/eyedata/Edema_trainingset/original_images/*/*.bmp" if platform.system()=="Darwin" \
-    else "/root/eyedata/Edema_trainset/original_images/*/*.bmp"
+    else "/root/eyedata/Edema_trainingset/original_images/*/*.bmp"
 
 val_data_path = "/Users/miao/Downloads/eyedata/Edema_validationset/original_images/*/*.bmp" if platform.system()=="Darwin" \
     else "/root/eyedata/Edema_validationset/original_images/*/*.bmp"
@@ -23,7 +23,7 @@ net = unet.Unet(channels=train_data_provider.channels,
                 cost_kwargs=dict(regularizer=0.001),
                 )
 
-batch_size = 16
+batch_size = 1
 training_iters = int(train_data_provider.data_num/batch_size)
 epochs = 50
 
