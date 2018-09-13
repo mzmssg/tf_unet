@@ -240,11 +240,27 @@ class Unet(object):
                     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=flat_logits,
                                                                                      labels=flat_labels))
             elif cost_name == "dice_coefficient":
-                eps = 1e-5
-                prediction = pixel_wise_softmax(logits)
-                intersection = tf.reduce_sum(prediction * self.y)
-                union = eps + tf.reduce_sum(prediction) + tf.reduce_sum(self.y)
-                loss = -(2 * intersection / (union))
+                # eps = 1e-5
+                # prediction = pixel_wise_softmax(logits)
+                # intersection = eps + tf.reduce_sum(prediction * self.y)
+                # union = eps + tf.reduce_sum(prediction) + tf.reduce_sum(self.y)
+                # loss = 1.0 - (2 * intersection / (union))
+                def get_binary_dice(logits, label, eps=1e-5):
+                    prediction = pixel_wise_softmax(logits)
+                    intersection = eps + tf.reduce_sum(prediction * label)
+                    union = eps + tf.reduce_sum(prediction) + tf.reduce_sum(label)
+                    loss = 1.0 - (2 * intersection / (union))
+                    return loss
+
+                # TODO: add class weights
+                loss = 0
+                sum_logits = tf.reduce_sum(logits, 3)
+                for i in range(1, self.n_class):
+                    binary_logits = tf.stack([sum_logits - logits[..., i], logits[..., i]], -1)
+                    binary_label = tf.stack([1 - self.y[..., i], self.y[..., i]], -1)
+                    binary_loss = get_binary_dice(binary_logits, binary_label)
+                    loss += binary_loss
+                loss /= self.n_class
 
             else:
                 raise ValueError("Unknown cost function: " % cost_name)

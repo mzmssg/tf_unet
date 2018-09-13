@@ -11,6 +11,9 @@ train_data_path = "/Users/miao/Downloads/eyedata/Edema_trainingset/original_imag
 val_data_path = "/Users/miao/Downloads/eyedata/Edema_validationset/original_images/*/*.bmp" if platform.system()=="Darwin" \
     else "/root/eyedata/Edema_validationset/original_images/*/*.bmp"
 
+train_data_path = "/root/eyedata/Edema_trainingset/original_images/PC034_MacularCube512x128_12-10-2013_10-48-27_OS_sn14231_cube_z.img/*.bmp"
+val_data_path = "/root/eyedata/Edema_validationset/original_images/PC022_MacularCube512x128_12-9-2013_15-24-2_OD_sn14152_cube_z.img/*.bmp"
+
 
 
 train_data_provider = EyeDataProvider(train_data_path, n_class=4)
@@ -21,6 +24,7 @@ net = unet.Unet(channels=train_data_provider.channels,
                 layers=3,
                 features_root=64,
                 cost_kwargs=dict(regularizer=0.001),
+                cost="dice_coefficient"
                 )
 
 batch_size = 1
