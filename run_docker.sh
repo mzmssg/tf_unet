@@ -1,6 +1,6 @@
 #/bin/bash
 
-GPU_ID = 2 # choose from 0,1,2,3
+GPU_ID=2 # choose from 0,1,2,3
 
 docker run -d \
     --name tf_unet \
