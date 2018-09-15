@@ -70,7 +70,10 @@ class EyeDataProvider(BaseDataProvider):
 
         img = self._load_file(image_name, np.float32)
         label = self._load_file(label_name, np.uint8)
-        label = self._convert_label_to_onehot(label)
+        if self.n_class > 2:
+            label = self._convert_label_to_onehot(label)
+        else:
+            label = self._convert_label_to_binary(label)
 
 
         return img, label
@@ -88,6 +91,12 @@ class EyeDataProvider(BaseDataProvider):
         for i in range(len(class_gray)):
             new_label[:, :, i] = (label == class_gray[i])
         return new_label
+
+    def _convert_label_to_binary(self, label):
+        label = (label == 255)
+        new_label = np.stack([1-label, label], -1)
+        return new_label
+
 
 
 
