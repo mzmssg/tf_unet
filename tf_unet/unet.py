@@ -439,7 +439,8 @@ class Trainer(object):
                     self.net.restore(sess, ckpt.model_checkpoint_path)
 
             test_x, test_y = val_data_provider(self.verification_batch_size)
-            val_data_provider.reset_data()
+            if hasattr(val_data_provider, 'reset_data'):
+                val_data_provider.reset_data()
             pred_shape = self.store_prediction(sess, test_x, test_y, "_init")
 
             summary_writer = tf.summary.FileWriter(output_path, graph=sess.graph)
@@ -479,7 +480,12 @@ class Trainer(object):
             return save_path
 
     def run_validation(self, val_data_provider, sess, pred_shape, epoch):
-        val_iters = int(val_data_provider.data_num/self.batch_size)
+        if hasattr(val_data_provider, "data_num"):
+            val_iters = int(val_data_provider.data_num/self.batch_size)
+        else:
+            logging.warn(
+                "Val set has no data_num attribution, run 10 iters for validation")
+            val_iters = 10
         total_loss = 0
         total_acc = 0
         for step in range(val_iters):
