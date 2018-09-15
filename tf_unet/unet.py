@@ -522,15 +522,12 @@ class Trainer(object):
 
     def output_minibatch_stats(self, sess, summary_writer, step, batch_x, batch_y):
         # Calculate batch loss and accuracy
-        summary_str, loss, acc, predictions = sess.run([self.summary_op,
-                                                        self.net.cost,
-                                                        self.net.accuracy,
-                                                        self.net.predicter],
-                                                       feed_dict={self.net.x: batch_x,
-                                                                  self.net.y: batch_y,
-                                                                  self.net.keep_prob: 1.})
-        summary_writer.add_summary(summary_str, step)
-        summary_writer.flush()
+        loss, acc, predictions = sess.run([self.net.cost,
+                                           self.net.accuracy,
+                                           self.net.predicter],
+                                          feed_dict={self.net.x: batch_x,
+                                                     self.net.y: batch_y,
+                                                     self.net.keep_prob: 1.})
         logging.info(
             "Iter {:}, Minibatch Loss= {:.4f}, Training Accuracy= {:.4f}, Minibatch error= {:.1f}%".format(step,
                                                                                                            loss,
